@@ -21,6 +21,8 @@ class OthelloGame:
         self.current_player = None
         self.is_playing_against_ai = False
 
+        self.last_move = None
+
         # Set the initial board
         self.board[3][3] = "W"
         self.empty_cells.discard((3, 3))
@@ -42,22 +44,22 @@ class OthelloGame:
         playable_positions = []
 
         for empty_cell in self.empty_cells:
-            if self.is_adjacent_to_opponent(empty_cell):
-                directions = [(1, 0), (1, 1), (0, 1), (-1, 1),
-                              (-1, 0), (-1, -1), (0, -1), (1, -1)]
-                for direction in directions:
-                    if self.is_playable_position(empty_cell, direction):
-                        playable_positions.append(tuple(empty_cell))
-                        break
+            if self.is_adjacent_to_opponent(empty_cell) and self.is_any_direction_playable(empty_cell):
+                playable_positions.append(tuple(empty_cell))
 
         return playable_positions
 
-    def is_playable_position(self, position, direction=None):
+    def is_playable_position(self, position, direction):
         if not self.is_cell_on_board(position[0], position[1]):
             return False
         if self.board[position[0]][position[1]] != "":
             return False
         return self.check_direction(position[0], position[1], direction)
+
+    def is_any_direction_playable(self, position):
+        directions = [(1, 0), (1, 1), (0, 1), (-1, 1),
+                      (-1, 0), (-1, -1), (0, -1), (1, -1)]
+        return any(self.check_direction(position[0], position[1], direction) for direction in directions)
 
     def is_cell_on_board(self, x, y):
         return 0 <= x < 8 and 0 <= y < 8
@@ -79,6 +81,7 @@ class OthelloGame:
         # Place the piece
         self.board[x][y] = self.current_player.symbol
         self.empty_cells.discard((x, y))
+        self.last_move = (x, y)
 
         # Flip the opponent pieces
         directions = [(1, 0), (1, 1), (0, 1), (-1, 1),
@@ -109,7 +112,7 @@ class OthelloGame:
         return False
 
     def can_play(self, player):
-        return any(self.is_playable_position(position) for position in self.empty_cells)
+        return any(self.is_any_direction_playable(position) for position in self.empty_cells)
 
     def other_player(self, player):
         return self.players[1] if player == self.players[0] else self.players[0]
@@ -118,6 +121,9 @@ class OthelloGame:
         return self.check_direction(x, y, direction)
 
     def check_direction(self, x, y, direction):
+        if direction is None:
+            return False
+
         actual_position = np.array([x, y]) + direction
         found_opponent_piece = False
 
@@ -153,3 +159,12 @@ class OthelloGame:
             if self.is_cell_on_board(adj_cell[0], adj_cell[1]) and self.board[adj_cell[0]][adj_cell[1]] == self.current_player.opponent_symbol:
                 return True
         return False
+
+    def undo_last_move(self) -> None:
+        if self.last_move is None:
+            return
+        x, y = self.last_move
+        self.board[x][y] = ""
+        self.empty_cells.add((x, y))
+        self.current_player = self.other_player(self.current_player)
+        self.last_move = None
