@@ -11,6 +11,7 @@ main_menu = MainMenu(1280, 720, "Othello")
 play_screen = PlayScreen(1280, 720, "Othello - Play")
 current_screen = main_menu
 
+clock = pygame.time.Clock()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -35,5 +36,6 @@ while running:
         visual_component.process()
 
     current_screen.draw()
+    clock.tick(60)
 
 pygame.quit()
