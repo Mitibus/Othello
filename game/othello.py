@@ -31,12 +31,13 @@ class OthelloGame:
         playable_positions = []
 
         for empty_cell in self.empty_cells:
-            directions = [(1, 0), (1, 1), (0, 1), (-1, 1),
-                          (-1, 0), (-1, -1), (0, -1), (1, -1)]
-            for direction in directions:
-                if self.is_playable_position(empty_cell, direction):
-                    playable_positions.append(tuple(empty_cell))
-                    break
+            if self.is_adjacent_to_opponent(empty_cell):
+                directions = [(1, 0), (1, 1), (0, 1), (-1, 1),
+                              (-1, 0), (-1, -1), (0, -1), (1, -1)]
+                for direction in directions:
+                    if self.is_playable_position(empty_cell, direction):
+                        playable_positions.append(tuple(empty_cell))
+                        break
 
         return playable_positions
 
@@ -126,3 +127,13 @@ class OthelloGame:
 
     def get_player_score(self, player_symbol):
         return np.count_nonzero(self.board == player_symbol)
+
+    def is_adjacent_to_opponent(self, cell):
+        x, y = cell
+        adjacent_cells = [(x + dx, y + dy) for dx in [-1, 0, 1]
+                          for dy in [-1, 0, 1] if not (dx == 0 and dy == 0)]
+
+        for adj_cell in adjacent_cells:
+            if self.is_cell_on_board(adj_cell[0], adj_cell[1]) and self.board[adj_cell[0]][adj_cell[1]] == self.current_player.opponent_symbol:
+                return True
+        return False
