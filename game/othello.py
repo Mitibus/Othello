@@ -1,10 +1,19 @@
 import numpy as np
 import pygame
 from constants.events import GAME_IS_OVER_EVENT
+from enum import Enum
+
+
+class GameState(Enum):
+    INITIAL = 0
+    PLAYING = 1
+    GAME_OVER = 2
 
 
 class OthelloGame:
     def __init__(self):
+        self.state = GameState.INITIAL
+
         self.board = np.empty((8, 8), dtype=str)
         self.empty_cells = set([(i, j) for i in range(8)
                                for j in range(8) if self.board[i][j] == ""])
@@ -21,6 +30,8 @@ class OthelloGame:
         self.empty_cells.discard((4, 3))
         self.board[4][4] = "W"
         self.empty_cells.discard((4, 4))
+
+        self.state = GameState.PLAYING
 
     def set_players(self, players):
         self.players = players
@@ -52,6 +63,10 @@ class OthelloGame:
         return 0 <= x < 8 and 0 <= y < 8
 
     def place_piece(self, x, y):
+        # Check if the game state is playing
+        if self.state != GameState.PLAYING:
+            return False
+
         # Check if cell is on the board
         if not self.is_cell_on_board(x, y):
             return False
@@ -88,6 +103,7 @@ class OthelloGame:
     def is_game_over(self):
         if not self.can_play(self.current_player) and not self.can_play(self.other_player(self.current_player)):
             # Raise a pygame event to display the winner
+            self.state = GameState.GAME_OVER
             pygame.event.post(pygame.event.Event(GAME_IS_OVER_EVENT))
             return True
         return False
