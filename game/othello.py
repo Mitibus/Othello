@@ -41,32 +41,11 @@ class OthelloGame:
         return playable_positions
 
     def is_playable_position(self, position, direction=None):
-        around_position = np.array(position) + direction
-
-        # Check if the position is on the board
-        if not self.is_cell_on_board(around_position[0], around_position[1]):
+        if not self.is_cell_on_board(position[0], position[1]):
             return False
-
-        # Check if the cell contains the opponent piece
-        if self.board[around_position[0]][around_position[1]] != self.current_player.opponent_symbol:
+        if self.board[position[0]][position[1]] != "":
             return False
-
-        while self.is_cell_on_board(around_position[0], around_position[1]):
-            around_position += direction
-
-            # CHeck if the position is on the board
-            if not self.is_cell_on_board(around_position[0], around_position[1]):
-                return False
-
-            # Check if the cell is empty
-            if self.board[around_position[0]][around_position[1]] == "":
-                return False
-
-            # Check if the cell contains the current player piece
-            if self.board[around_position[0]][around_position[1]] == self.current_player.symbol:
-                return True
-
-        return False
+        return self.check_direction(position[0], position[1], direction)
 
     def is_cell_on_board(self, x, y):
         return 0 <= x < 8 and 0 <= y < 8
@@ -90,8 +69,6 @@ class OthelloGame:
                       (-1, 0), (-1, -1), (0, -1), (1, -1)]
 
         for direction in directions:
-            print(np.array([x, y]), np.array([x, y]) + direction,
-                  self.can_flip_in_direction(x, y, direction))
             if self.can_flip_in_direction(x, y, direction):
                 self.flip_in_direction(x, y, direction)
 
@@ -121,14 +98,22 @@ class OthelloGame:
         return self.players[1] if player == self.players[0] else self.players[0]
 
     def can_flip_in_direction(self, x, y, direction):
-        return self.check_direction(x, y, direction, lambda symbol: symbol == self.current_player.symbol)
+        return self.check_direction(x, y, direction)
 
-    def check_direction(self, x, y, direction, condition):
+    def check_direction(self, x, y, direction):
         actual_position = np.array([x, y]) + direction
+        found_opponent_piece = False
+
         while self.is_cell_on_board(actual_position[0], actual_position[1]):
-            if condition(self.board[actual_position[0]][actual_position[1]]):
-                return True
+            cell = self.board[actual_position[0]][actual_position[1]]
+            if cell == "":
+                return False
+            elif cell == self.current_player.opponent_symbol:
+                found_opponent_piece = True
+            elif cell == self.current_player.symbol:
+                return found_opponent_piece
             actual_position += direction
+
         return False
 
     def flip_in_direction(self, x, y, direction):
