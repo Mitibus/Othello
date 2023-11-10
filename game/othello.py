@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+import hashlib
 from constants.events import GAME_IS_OVER_EVENT
 from enum import Enum
 
@@ -168,3 +169,16 @@ class OthelloGame:
         self.empty_cells.add((x, y))
         self.current_player = self.other_player(self.current_player)
         self.last_move = None
+
+    def get_hash(self):
+        # Convert board to a byte array
+        board_bytes = self.board.tobytes()
+
+        # Create a md5 hash of the board
+        hash_md5 = hashlib.md5()
+        hash_md5.update(board_bytes)
+
+        return hash_md5.hexdigest()
+
+    def __str__(self):
+        return self.get_hash()
