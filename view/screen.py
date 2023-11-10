@@ -3,6 +3,7 @@ from view.color import BACKGROUND_COLOR, WHITE, BLACK
 from view.components import Button
 from constants.events import START_HUMAN_VS_HUMAN_EVENT, START_HUMAN_VS_AI_EVENT
 from game.othello import OthelloGame
+from loguru import logger
 
 
 class Screen:
@@ -16,14 +17,23 @@ class Screen:
         self.screen.fill(background)
         self.visual_components = pygame.sprite.Group()
 
-        icon = pygame.image.load("assets/icon/icon.jpg")
-        pygame.display.set_icon(icon)
+        self.icons = {}
+        self.icons["icon"] = pygame.image.load("assets/icon/icon.jpg")
+        pygame.display.set_icon(self.icons["icon"])
+
+        self.fonts = {}
 
     def get_font(self, size):
-        return pygame.font.SysFont("assets/font/TechnoRaceItalic.otf", size)
+        if size not in self.fonts:
+            self.fonts[size] = pygame.font.SysFont(
+                "assets/font/TechnoRaceItalic.otf", size)
+        return self.fonts[size]
 
     def draw(self):
-        pygame.display.update()
+        try:
+            pygame.display.update()
+        except Exception as e:
+            logger.error(e)
 
 
 class MainMenu(Screen):
@@ -205,13 +215,17 @@ class PlayScreen(Screen):
 
     def process_mouse_click(self):
         # Get the position of the mouse
-        mouse_position = pygame.mouse.get_pos()
+        try:
+            mouse_position = pygame.mouse.get_pos()
 
-        # Check if the mouse is on the board
-        if mouse_position[0] < 720:
-            # Get the position of the mouse on the grid
-            grid_position = (mouse_position[0] // 90, mouse_position[1] // 90)
+            # Check if the mouse is on the board
+            if mouse_position[0] < 720:
+                # Get the position of the mouse on the grid
+                grid_position = (
+                    mouse_position[0] // 90, mouse_position[1] // 90)
 
-        if not self.game.current_player.is_ai:
-            self.game.current_player.place_piece(
-                grid_position[0], grid_position[1], self.game)
+            if not self.game.current_player.is_ai:
+                self.game.current_player.place_piece(
+                    grid_position[0], grid_position[1], self.game)
+        except Exception as e:
+            logger.error(e)
