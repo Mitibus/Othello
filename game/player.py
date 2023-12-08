@@ -3,6 +3,7 @@ import time
 import numpy as np
 import copy
 from loguru import logger
+from game.othello import GameState
 
 
 class Player:
