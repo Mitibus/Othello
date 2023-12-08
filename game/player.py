@@ -61,12 +61,7 @@ class Player:
             ai_score = game.get_player_score(self.symbol)
             opponent_score = game.get_player_score(self.opponent_symbol)
 
-            if ai_score > opponent_score:
-                return 1
-            elif ai_score < opponent_score:
-                return -1
-            else:
-                return 0
+            return ai_score - opponent_score
 
         possible_moves = game.get_playable_positions()
 
