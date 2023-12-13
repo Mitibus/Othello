@@ -12,6 +12,9 @@ class GameState(Enum):
 
 
 class OthelloGame:
+    DIRECTIONS = [(1, 0), (1, 1), (0, 1), (-1, 1),
+                  (-1, 0), (-1, -1), (0, -1), (1, -1)]
+
     def __init__(self):
         """
         Initialize the game
@@ -19,9 +22,6 @@ class OthelloGame:
         """
         self.state = GameState.INITIAL
 
-        self.board = np.empty((8, 8), dtype=str)
-        self.empty_cells = set([(i, j) for i in range(8)
-                               for j in range(8) if self.board[i][j] == ""])
         self.players = None
         self.current_player = None
         self.is_playing_against_ai = False
@@ -29,14 +29,13 @@ class OthelloGame:
         self.last_move = None
 
         # Set the initial board
-        self.board[3][3] = "W"
-        self.empty_cells.discard((3, 3))
-        self.board[3][4] = "B"
-        self.empty_cells.discard((3, 4))
-        self.board[4][3] = "B"
-        self.empty_cells.discard((4, 3))
-        self.board[4][4] = "W"
-        self.empty_cells.discard((4, 4))
+        self.board = np.empty((8, 8), dtype=str)
+        for (x, y), player in [((3, 3), "W"), ((3, 4), "B"), ((4, 3), "B"), ((4, 4), "W")]:
+            self.board[x][y] = player
+
+        # Set the empty cells
+        self.empty_cells = set([(i, j) for i in range(8)
+                               for j in range(8) if self.board[i][j] == ""])
 
         self.state = GameState.PLAYING
 
@@ -52,6 +51,7 @@ class OthelloGame:
         # Return a list of playable positions for the current player around the opponent pieces where cells are empty
         playable_positions = []
 
+        # For each empty cell, check if it is adjacent to an opponent piece and if it is playable in any direction
         for empty_cell in self.empty_cells:
             if self.is_adjacent_to_opponent(empty_cell) and self.is_any_direction_playable(empty_cell):
                 playable_positions.append(tuple(empty_cell))
@@ -66,9 +66,7 @@ class OthelloGame:
         return self.check_direction(position[0], position[1], direction)
 
     def is_any_direction_playable(self, position):
-        directions = [(1, 0), (1, 1), (0, 1), (-1, 1),
-                      (-1, 0), (-1, -1), (0, -1), (1, -1)]
-        return any(self.check_direction(position[0], position[1], direction) for direction in directions)
+        return any(self.check_direction(position[0], position[1], direction) for direction in self.DIRECTIONS)
 
     def is_cell_on_board(self, x, y):
         return 0 <= x < 8 and 0 <= y < 8
@@ -93,10 +91,7 @@ class OthelloGame:
         self.last_move = (x, y)
 
         # Flip the opponent pieces
-        directions = [(1, 0), (1, 1), (0, 1), (-1, 1),
-                      (-1, 0), (-1, -1), (0, -1), (1, -1)]
-
-        for direction in directions:
+        for direction in self.DIRECTIONS:
             if self.can_flip_in_direction(x, y, direction):
                 self.flip_in_direction(x, y, direction)
 
@@ -179,14 +174,7 @@ class OthelloGame:
         self.last_move = None
 
     def get_hash(self):
-        # Convert board to a byte array
-        board_bytes = self.board.tobytes()
-
-        # Create a md5 hash of the board
-        hash_md5 = hashlib.md5()
-        hash_md5.update(board_bytes)
-
-        return hash_md5.hexdigest()
-
-    def __str__(self):
-        return self.get_hash()
+        """
+        Return the hash of the board
+        """
+        return hashlib.md5(self.board.tobytes()).hexdigest()
