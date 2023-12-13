@@ -3,6 +3,7 @@ from view.screen import MainMenu, PlayScreen
 from constants.events import START_HUMAN_VS_HUMAN_EVENT, START_HUMAN_VS_AI_EVENT, GAME_IS_OVER_EVENT
 from game.player import Player
 import random
+import pyautogui
 
 pygame.init()
 
@@ -31,8 +32,10 @@ while running:
             if current_screen == play_screen:
                 current_screen.process_mouse_click()
         elif event.type == GAME_IS_OVER_EVENT:
-            # Open alert box
-            pass
+            click = pyautogui.alert(
+                title="Game is over!", text=f"{current_screen.game.get_winner().name} won!", button="OK")
+            if click == "OK":
+                exit(0)
 
     for visual_component in current_screen.visual_components:
         visual_component.process()

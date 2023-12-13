@@ -27,6 +27,7 @@ class OthelloGame:
         self.is_playing_against_ai = False
 
         self.last_move = None
+        self.is_simulated = False
 
         # Set the initial board
         self.board = np.empty((8, 8), dtype=str)
@@ -110,13 +111,13 @@ class OthelloGame:
                 self.players.index(self.current_player) + 1) % 2]
 
             if len(self.get_playable_positions()) == 0:
+                if not self.is_simulated:
+                    self.state = GameState.GAME_OVER
+                    pygame.event.post(pygame.event.Event(GAME_IS_OVER_EVENT))
                 return True
 
     def is_game_over(self):
         if not self.can_play(self.current_player) and not self.can_play(self.other_player(self.current_player)):
-            # Raise a pygame event to display the winner
-            self.state = GameState.GAME_OVER
-            pygame.event.post(pygame.event.Event(GAME_IS_OVER_EVENT))
             return True
         return False
 
@@ -183,3 +184,14 @@ class OthelloGame:
         Return the hash of the board
         """
         return hashlib.md5(self.board.tobytes()).hexdigest()
+
+    def get_winner(self):
+        """
+        Return the winner of the game
+        """
+        if self.get_player_score(self.players[0].symbol) > self.get_player_score(self.players[1].symbol):
+            return self.players[0]
+        elif self.get_player_score(self.players[0].symbol) < self.get_player_score(self.players[1].symbol):
+            return self.players[1]
+        else:
+            return None

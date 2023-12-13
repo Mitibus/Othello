@@ -18,7 +18,7 @@ class Player:
     def place_piece(self, x, y, game):
         logger.info(f"{self.name} is playing")
         if self.is_ai and game.state == GameState.PLAYING:
-            time.sleep(1)
+            # time.sleep(1)
             move = self.best_move(game)
             game.place_piece(move[0], move[1])
             logger.info(
@@ -33,6 +33,7 @@ class Player:
 
         # Make a copy of the game for simulation
         simulated_game = copy.deepcopy(game)
+        simulated_game.is_simulated = True
 
         # Get all playable positions
         playable_positions = simulated_game.get_playable_positions()
