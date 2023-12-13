@@ -47,23 +47,32 @@ class OthelloGame:
         self.players = players
         self.current_player = np.random.choice(self.players)
 
+    # def get_playable_positions(self):
+    #     # Return a list of playable positions for the current player around the opponent pieces where cells are empty
+    #     playable_positions = []
+
+    #     # For each empty cell, check if it is adjacent to an opponent piece and if it is playable in any direction
+    #     for empty_cell in self.empty_cells:
+    #         if self.is_adjacent_to_opponent(empty_cell) and self.is_any_direction_playable(empty_cell):
+    #             playable_positions.append(tuple(empty_cell))
+
+    #     return playable_positions
+
+    def is_playable_position(self, position):
+        x, y = position
+        if self.board[x][y] != "" or not self.is_cell_on_board(x, y):
+            return False
+        return any(self.check_direction(x, y, direction) for direction in self.DIRECTIONS)
+
     def get_playable_positions(self):
-        # Return a list of playable positions for the current player around the opponent pieces where cells are empty
-        playable_positions = []
+        return [position for position in self.empty_cells if self.is_playable_position(position)]
 
-        # For each empty cell, check if it is adjacent to an opponent piece and if it is playable in any direction
-        for empty_cell in self.empty_cells:
-            if self.is_adjacent_to_opponent(empty_cell) and self.is_any_direction_playable(empty_cell):
-                playable_positions.append(tuple(empty_cell))
-
-        return playable_positions
-
-    def is_playable_position(self, position, direction):
-        if not self.is_cell_on_board(position[0], position[1]):
-            return False
-        if self.board[position[0]][position[1]] != "":
-            return False
-        return self.check_direction(position[0], position[1], direction)
+    # def is_playable_position(self, position, direction):
+    #     if not self.is_cell_on_board(position[0], position[1]):
+    #         return False
+    #     if self.board[position[0]][position[1]] != "":
+    #         return False
+    #     return self.check_direction(position[0], position[1], direction)
 
     def is_any_direction_playable(self, position):
         return any(self.check_direction(position[0], position[1], direction) for direction in self.DIRECTIONS)
@@ -72,12 +81,8 @@ class OthelloGame:
         return 0 <= x < 8 and 0 <= y < 8
 
     def place_piece(self, x, y):
-        # Check if the game state is playing
-        if self.state != GameState.PLAYING:
-            return False
-
-        # Check if cell is on the board
-        if not self.is_cell_on_board(x, y):
+        # Check if the game state is playing and if the position is on the board
+        if self.state != GameState.PLAYING or not self.is_cell_on_board(x, y):
             return False
 
         # Check if the position is playable
