@@ -13,6 +13,10 @@ class GameState(Enum):
 
 class OthelloGame:
     def __init__(self):
+        """
+        Initialize the game
+        Create an empty board and place the initial pieces
+        """
         self.state = GameState.INITIAL
 
         self.board = np.empty((8, 8), dtype=str)
@@ -37,8 +41,12 @@ class OthelloGame:
         self.state = GameState.PLAYING
 
     def set_players(self, players):
+        """
+        Set the players of the game
+        Define the starting player
+        """
         self.players = players
-        self.current_player = players[0]
+        self.current_player = np.random.choice(self.players)
 
     def get_playable_positions(self):
         # Return a list of playable positions for the current player around the opponent pieces where cells are empty

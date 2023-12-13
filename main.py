@@ -22,13 +22,8 @@ while running:
             current_screen = play_screen
             current_screen.game.set_players(players)
         elif event.type == START_HUMAN_VS_AI_EVENT:
-            r = random.random()
-            if r < 0.5:
-                players = (Player("Player 1", "B"),
-                           Player("AI", "W", is_ai=True))
-            else:
-                players = (Player("AI", "B", is_ai=True),
-                           Player("Player 1", "W"))
+            players = (Player("Player 1", "B"),
+                       Player("AI", "W", is_ai=True))
             current_screen = play_screen
             current_screen.game.set_players(players)
             current_screen.game.is_playing_against_ai = True
