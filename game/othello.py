@@ -40,13 +40,16 @@ class OthelloGame:
 
         self.state = GameState.PLAYING
 
-    def set_players(self, players):
+    def set_players(self, is_playing_against_ai=False):
         """
         Set the players of the game
         Define the starting player
         """
-        self.players = players
-        self.current_player = np.random.choice(self.players)
+        from game.player import Player
+        self.is_playing_against_ai = is_playing_against_ai
+        self.players = (Player("Player 1", "B"), Player(
+            "Player 2" if not self.is_playing_against_ai else "AI", "W", is_ai=self.is_playing_against_ai))
+        self.current_player = self.players[0]
 
     def is_playable_position(self, position):
         """
@@ -65,10 +68,10 @@ class OthelloGame:
         """
         return [position for position in self.empty_cells if self.is_playable_position(position)]
 
-    def is_any_direction_playable(self, position):
-        return any(self.can_flip_in_direction(position[0], position[1], direction) for direction in self.DIRECTIONS)
-
     def is_cell_on_board(self, x, y):
+        """
+        Check if a cell is on the board
+        """
         return 0 <= x < 8 and 0 <= y < 8
 
     def place_piece(self, x, y):
@@ -92,27 +95,40 @@ class OthelloGame:
                 self.flip_in_direction(x, y, direction)
 
         # Change the current player
-        self.current_player = self.players[(
-            self.players.index(self.current_player) + 1) % 2]
+        # self.current_player = self.players[(
+        #     self.players.index(self.current_player) + 1) % 2]
+        self.current_player = self.other_player(self.current_player)
 
         # Check if the game is over
-        if len(self.get_playable_positions()) == 0:
-            self.current_player = self.players[(
-                self.players.index(self.current_player) + 1) % 2]
-
-            if len(self.get_playable_positions()) == 0:
-                if not self.is_simulated:
-                    self.state = GameState.GAME_OVER
-                    pygame.event.post(pygame.event.Event(GAME_IS_OVER_EVENT))
-                return True
+        if self.is_game_over():
+            if not self.is_simulated:
+                self.state = GameState.GAME_OVER
+                pygame.event.post(pygame.event.Event(GAME_IS_OVER_EVENT))
+            return True
 
     def is_game_over(self):
-        if not self.can_play(self.current_player) and not self.can_play(self.other_player(self.current_player)):
-            return True
-        return False
+        """
+        Check if the game is over
+        """
+        # Check if the current player has possible moves
+        if len(self.get_playable_positions()) == 0:
+            # The current player has no possible moves
+            # Check if his opponent has possible moves
+            self.current_player = self.other_player(self.current_player)
+            if len(self.get_playable_positions()) == 0:
+                # The opponent has no possible moves
+                # The game is over
+                self.current_player = self.other_player(self.current_player)
+                return True
+            else:
+                # The opponent has possible moves
+                # The game is not over
+                self.current_player = self.other_player(self.current_player)
+                return False
 
-    def can_play(self, player):
-        return any(self.is_any_direction_playable(position) for position in self.empty_cells)
+        # The current player has possible moves
+        # The game is not over
+        return False
 
     def other_player(self, player):
         """
@@ -145,6 +161,9 @@ class OthelloGame:
         return False
 
     def flip_in_direction(self, x, y, direction):
+        """
+        Flip pieces in a given direction
+        """
         actual_position = np.array([x, y]) + direction
 
         while self.board[actual_position[0]][actual_position[1]] != self.current_player.symbol:
