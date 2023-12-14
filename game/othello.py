@@ -98,7 +98,7 @@ class OthelloGame:
 
         # Flip the opponent pieces
         for direction in self.DIRECTIONS:
-            if self.can_flip_in_direction(x, y, direction):
+            if self.check_direction(x, y, direction):
                 self.flip_in_direction(x, y, direction)
 
         # Change the current player
@@ -126,9 +126,6 @@ class OthelloGame:
 
     def other_player(self, player):
         return self.players[1] if player == self.players[0] else self.players[0]
-
-    def can_flip_in_direction(self, x, y, direction):
-        return self.check_direction(x, y, direction)
 
     def check_direction(self, x, y, direction):
         if direction is None:
