@@ -156,6 +156,11 @@ class PlayScreen(Screen):
             pygame.draw.circle(
                 board, (128, 128, 128), (playable_position[0] * 90 + 45, playable_position[1] * 90 + 45), 40)
 
+        last_move = self.game.last_move
+        if last_move is not None:
+            pygame.draw.circle(
+                board, (255, 0, 0), (last_move[0] * 90 + 45, last_move[1] * 90 + 45), 5)
+
         # Add the board to the screen
         self.screen.blit(board, (0, 0))
 
