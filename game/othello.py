@@ -48,35 +48,25 @@ class OthelloGame:
         self.players = players
         self.current_player = np.random.choice(self.players)
 
-    # def get_playable_positions(self):
-    #     # Return a list of playable positions for the current player around the opponent pieces where cells are empty
-    #     playable_positions = []
-
-    #     # For each empty cell, check if it is adjacent to an opponent piece and if it is playable in any direction
-    #     for empty_cell in self.empty_cells:
-    #         if self.is_adjacent_to_opponent(empty_cell) and self.is_any_direction_playable(empty_cell):
-    #             playable_positions.append(tuple(empty_cell))
-
-    #     return playable_positions
-
     def is_playable_position(self, position):
+        """
+        Check if the position is playable
+        A playable position is an empty cell that is adjacent to an opponent piece
+        and that can be flipped in at least one direction
+        """
         x, y = position
         if self.board[x][y] != "" or not self.is_cell_on_board(x, y):
             return False
-        return any(self.check_direction(x, y, direction) for direction in self.DIRECTIONS)
+        return any(self.can_flip_in_direction(x, y, direction) for direction in self.DIRECTIONS)
 
     def get_playable_positions(self):
+        """
+        Return the playable positions
+        """
         return [position for position in self.empty_cells if self.is_playable_position(position)]
 
-    # def is_playable_position(self, position, direction):
-    #     if not self.is_cell_on_board(position[0], position[1]):
-    #         return False
-    #     if self.board[position[0]][position[1]] != "":
-    #         return False
-    #     return self.check_direction(position[0], position[1], direction)
-
     def is_any_direction_playable(self, position):
-        return any(self.check_direction(position[0], position[1], direction) for direction in self.DIRECTIONS)
+        return any(self.can_flip_in_direction(position[0], position[1], direction) for direction in self.DIRECTIONS)
 
     def is_cell_on_board(self, x, y):
         return 0 <= x < 8 and 0 <= y < 8
@@ -98,7 +88,7 @@ class OthelloGame:
 
         # Flip the opponent pieces
         for direction in self.DIRECTIONS:
-            if self.check_direction(x, y, direction):
+            if self.can_flip_in_direction(x, y, direction):
                 self.flip_in_direction(x, y, direction)
 
         # Change the current player
@@ -125,13 +115,21 @@ class OthelloGame:
         return any(self.is_any_direction_playable(position) for position in self.empty_cells)
 
     def other_player(self, player):
+        """
+        Return the opponent player for a given player
+        """
         return self.players[1] if player == self.players[0] else self.players[0]
 
-    def check_direction(self, x, y, direction):
+    def can_flip_in_direction(self, x, y, direction):
+        """
+        Check if pieces can be flipped in a direction
+        """
         if direction is None:
             return False
 
+        # Checking position
         actual_position = np.array([x, y]) + direction
+        # Check if an opponent piece is found
         found_opponent_piece = False
 
         while self.is_cell_on_board(actual_position[0], actual_position[1]):
@@ -155,19 +153,15 @@ class OthelloGame:
             actual_position += direction
 
     def get_player_score(self, player_symbol):
+        """
+        Return the score of a player
+        """
         return np.count_nonzero(self.board == player_symbol)
 
-    def is_adjacent_to_opponent(self, cell):
-        x, y = cell
-        adjacent_cells = [(x + dx, y + dy) for dx in [-1, 0, 1]
-                          for dy in [-1, 0, 1] if not (dx == 0 and dy == 0)]
-
-        for adj_cell in adjacent_cells:
-            if self.is_cell_on_board(adj_cell[0], adj_cell[1]) and self.board[adj_cell[0]][adj_cell[1]] == self.current_player.opponent_symbol:
-                return True
-        return False
-
     def undo_last_move(self) -> None:
+        """
+        Undo the last move
+        """
         if self.last_move is None:
             return
         x, y = self.last_move
@@ -182,13 +176,15 @@ class OthelloGame:
         """
         return hashlib.md5(self.board.tobytes()).hexdigest()
 
-    def get_winner(self):
+    def get_winner(self) -> str:
         """
-        Return the winner of the game
+        Return the winner of the game or "Tie" if the game is a tie
         """
-        if self.get_player_score(self.players[0].symbol) > self.get_player_score(self.players[1].symbol):
-            return self.players[0]
-        elif self.get_player_score(self.players[0].symbol) < self.get_player_score(self.players[1].symbol):
-            return self.players[1]
+        p1 = self.get_player_score(self.players[0].symbol)
+        p2 = self.get_player_score(self.players[1].symbol)
+        if p1 > p2:
+            return f"{self.players[0].name} won!"
+        elif p1 < p2:
+            return f"{self.players[1].name} won!"
         else:
-            return None
+            return "Tie"

@@ -33,7 +33,7 @@ while running:
                 current_screen.process_mouse_click()
         elif event.type == GAME_IS_OVER_EVENT:
             click = pyautogui.alert(
-                title="Game is over!", text=f"{current_screen.game.get_winner().name} won!", button="OK")
+                title="Game is over!", text=f"{current_screen.game.get_winner()}", button="OK")
             if click == "OK":
                 exit(0)
 
